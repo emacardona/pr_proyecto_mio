@@ -2,22 +2,24 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package controlador;
 
+
+//import modelo.Producto;
+package controlador;
+import modelo.Venta;
+import modelo.VentasDAO;
+import modelo.Ventadetalle;
+import modelo.Cliente;
+import modelo.Empleado;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.util.ArrayList;
 import java.util.List;
-import modelo.Idcliente;
-import modelo.Idempleado;
-import modelo.Idproducto;
-import modelo.Venta; 
-import modelo.Ventadetalle;
 
 /**
  *
@@ -25,6 +27,7 @@ import modelo.Ventadetalle;
  */
 @WebServlet(name = "sr_venta", urlPatterns = {"/sr_venta"})
 public class sr_venta extends HttpServlet {
+
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,92 +42,128 @@ public class sr_venta extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            
-        Venta venta = new Venta();
-        Idcliente idcliente = new Idcliente();
-        Idempleado idempleado = new Idempleado();
-        
-        
-        String id = request.getParameter("txt_id");
-        String nofactura = request.getParameter("txt_nofactura");
-        String serie = request.getParameter("txt_serie");
-        String fechafactura = request.getParameter("txt_fechafactura");
-        String id_cliente = request.getParameter("drop_idcliente");
-        String id_empleado = request.getParameter("drop_idempleado");
-        String fechaingreso = request.getParameter("txt_fechaingreso");
+        String menu = request.getParameter("menu"); //aquí almacena la variable del menu
+                                                    //depende de la opción que seleccione del menú
+                                                    //corre mi metodo "handleNuevaVenta"
 
-        
-        // Instanciar solo aquí
-        venta.setNofactura(nofactura);
-        venta.setSerie(serie);
-        venta.setFechafactura(fechafactura);
-        idcliente.setId_cliente(Integer.parseInt(id_cliente));
-        idempleado.setId_empleado(Integer.parseInt(id_empleado));
-        venta.setFechaingreso(fechaingreso);
-        venta.setId(Integer.parseInt(id));
-        
-        
-        // Crear la lista de detalles
-        List<Ventadetalle> detalles = new ArrayList<>();
-
-        // Capturar los detalles de la venta
-        String[] id_productos = request.getParameterValues("drop_idproducto");
-        String[] cantidades = request.getParameterValues("txt_cantidad");
-        String[] precios_unitarios = request.getParameterValues("txt_precio_unitario");
-
-        // Llenar la lista de detalles
-        for (int i = 0; i < id_productos.length; i++) {
-            Ventadetalle detalle = new Ventadetalle();
-            Idproducto idProducto = new Idproducto(); // Crear el objeto Idproducto
-            idProducto.setId_producto(Integer.parseInt(id_productos[i]));
-
-            // Asignar los valores a Ventadetalle
-            detalle.setIdproducto(idProducto); 
-            detalle.setCantidad(cantidades[i]);
-            detalle.setPrecio_unitario(precios_unitarios[i]);
-
-            // Añadir el detalle a la lista
-            detalles.add(detalle);
+        if ("Nueva_venta".equals(menu)) {
+        handleNuevaVenta(request, response);
+        } else {
+            response.sendRedirect("index.jsp");
         }
+}   
         
-            //boton agregar
-            if ("agregar".equals(request.getParameter("btn_agregar"))) {            
-            if (venta.agregarVentaConDetalle(detalles) > 0) {
-                response.sendRedirect("index.jsp");
-            } else {
-                out.println("<h1>Error al agregar...</h1>");
-                out.println("<a href = 'index.jsp'>Regresar</a>");
-            }   
-            }
+        private void handleNuevaVenta(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	String action = request.getParameter("action");
+	VentasDAO ventasDAO = new VentasDAO(); // Crear instancia de ComprasDAO
+	// Obtener los parámetros de venta
 
-            // Botón Modificar
-            if ("modificar".equals(request.getParameter("btn_modificar"))) {            
-            if (venta.modificar() > 0) {
-                response.sendRedirect("index.jsp");
-            } else {
-                out.println("<h1>Error al modificar...</h1>");
-                out.println("<a href = 'index.jsp'>Regresar</a>");
-            }   
-            }
+        String serie = request.getParameter("txt_serie");
+        String fechaFactura = request.getParameter("txt_fecha_factura");
+	String idClienteStr = request.getParameter("txt_id_cliente"); // ID del cliente
+        String idEmpleadoStr = request.getParameter("txt_id_empleado"); // ID del empleado
+        String fechaIngreso = request.getParameter("txt_fecha_ingreso");
+        String idVentaStr = request.getParameter("txt_id_venta"); // ID de la venta, solo en caso de actualización
 
-            // Botón Eliminar
-            if ("Eliminar".equals(request.getParameter("btn_eliminar"))) {            
-            if (venta.eliminar() > 0) {
-                response.sendRedirect("index.jsp");
-            } else {
-                out.println("<h1>Error al eliminar...</h1>");
-                out.println("<a href = 'index.jsp'>Regresar</a>");
-            }   
-            }
+	// Validar que los campos requeridos no estén vacíos
+	if(serie == null || serie.isEmpty() || fechaFactura == null || fechaFactura.isEmpty() || idClienteStr == null || idClienteStr.isEmpty() || idEmpleadoStr == null || idEmpleadoStr.isEmpty() || fechaIngreso == null || fechaIngreso.isEmpty() || (action.equals("actualizar") && (idVentaStr == null || idVentaStr.isEmpty()))) { // Validar idCompraStr solo si se actualiza
+		request.getRequestDispatcher("index.jsp").forward(request, response);
+		return;
+	}
+
+	int idCliente;
+        int idEmpleado;
+	int idVenta = -1; // Valor por defecto
+	try {
+		idCliente = Integer.parseInt(idClienteStr);
+		idEmpleado = Integer.parseInt(idEmpleadoStr);
+
+		Venta nuevaVenta;
+		switch(action) {
+			case "agregar":
+				Venta ventaInstance = new Venta();
+				int nuevoNumeroFactura = ventaInstance.obtenerUltimoNum() + 1;
+				// Crear una nueva instancia de Compra
+				nuevaVenta = new Venta(nuevoNumeroFactura, nuevoNumeroFactura, serie, fechaFactura, idCliente,idEmpleado,fechaIngreso);
+				// Aquí debes recoger los detalles (productos) que se van a agregar
+				List <Ventadetalle> detalles = obtenerDetallesDesdeFormulario(request); // Método para obtener detalles
+				// Agregar la compra y sus detalles
+				ventasDAO.agregarVentaYDetalles(nuevaVenta, detalles); // Llama al nuevo método
+				response.sendRedirect("index.jsp");
+				break;
+
+			case "actualizar":
+				idVenta = Integer.parseInt(idVentaStr); // Obtener el ID de compra para actualizar
+				
+                                Venta ventaExistente = ventasDAO.obtenerVentaPorId(idVenta);
+				if(ventaExistente != null) {
+					// Crear una nueva instancia de Compra con los datos actualizados
+					nuevaVenta = new Venta(idVenta, ventaExistente.getNo_factura(), serie, fechaFactura, idCliente,idEmpleado,fechaIngreso);
+					// Aquí debes recoger los detalles actualizados desde el formulario
+					List <Ventadetalle> detallesActualizados = obtenerDetallesDesdeFormulario(request); // Método para obtener detalles actualizados
+					// Actualizar la compra y sus detalles
+					ventasDAO.actualizarVentaYDetalles(nuevaVenta, detallesActualizados); // Llama al nuevo método
+					response.sendRedirect("index.jsp");
+				} else {
+					response.getWriter().println("<h1>No se encontró la Venta</h1>");
+					request.getRequestDispatcher("index.jsp").forward(request, response);
+				}
+				break;
+			case "eliminar":
+				idVenta = Integer.parseInt(idVentaStr); // Obtener el ID de compra para eliminar
+				if(ventasDAO.eliminarVentaYDetalles(idVenta)) { // Llama al nuevo método
+					response.sendRedirect("index.jsp");
+				} else {
+					response.getWriter().println("<h1>No se pudo eliminar la compra</h1>");
+					request.getRequestDispatcher("index.jsp").forward(request, response);
+				}
+				break;
+			default:
+				response.sendRedirect("index.jsp");
+				break;
+		}
+	} catch (NumberFormatException e) {
+		response.sendRedirect("index.jsp");
+	}
+}
+     
+         @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }
+
+    private List<Ventadetalle> obtenerDetallesDesdeFormulario(HttpServletRequest request) {
+    List<Ventadetalle> detalles = new ArrayList<>();
+    
+    String[] idsProductos = request.getParameterValues("id_producto[]"); // IDs de productos
+    String[] cantidades = request.getParameterValues("cantidad[]"); 
+    String[] preciosUnitarios = request.getParameterValues("precio_unitario[]");
+
+    if (idsProductos != null && cantidades != null && preciosUnitarios != null) {
+        for (int i = 0; i < idsProductos.length; i++) {
+            Ventadetalle detalle = new Ventadetalle();
+            detalle.setId_producto(Integer.parseInt(idsProductos[i])); // Establecer ID del producto
+            detalle.setCantidad(Integer.parseInt(cantidades[i])); // Establecer cantidad
+            detalle.setPrecio_unitario(Double.parseDouble(preciosUnitarios[i])); // Establecer precio unitario
             
-            
-            
-            out.println("</body>");
-            out.println("</html>");
+            detalles.add(detalle); // Agregar a la lista
         }
     }
+    return detalles; // Devolver la lista de detalles
+    }             
+}
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -165,4 +204,3 @@ public class sr_venta extends HttpServlet {
         return "Short description";
     }// </editor-fold>
 
-}

@@ -7,21 +7,20 @@ package controlador;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import modelo.Idproducto;
-import modelo.Idventa;
-import modelo.Ventadetalle; 
+import modelo.Empleado;
+import modelo.Usuario;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
- * @author emanu
+ * @author DELL
  */
-@WebServlet("/sr_venta_detalle")
-public class sr_ventadetalle extends HttpServlet {
-
+public class sr_validar extends HttpServlet {
+Empleado empleado = new Empleado();
+Usuario usuario= new Usuario();
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -31,7 +30,6 @@ public class sr_ventadetalle extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
@@ -40,61 +38,9 @@ public class sr_ventadetalle extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet sr_venta</title>");
+            out.println("<title>Servlet Validar</title>");
             out.println("</head>");
             out.println("<body>");
-            
-        Ventadetalle ventadetalle = new Ventadetalle();
-        Idventa idventa = new Idventa();
-        Idproducto idproducto = new Idproducto();
-        
-        
-        String id = request.getParameter("txt_id");
-        String id_venta = request.getParameter("drop_idventa");
-        String id_producto = request.getParameter("drop_idproducto");
-        String cantidad = request.getParameter("txt_cantidad");
-        String precio_unitario = request.getParameter("txt_precio_unitario");
-
-        
-        // Instanciar solo aquí
-        idventa.setId_venta(Integer.parseInt(id_venta));
-        idproducto.setId_producto(Integer.parseInt(id_producto));
-        ventadetalle.setCantidad(cantidad);
-        ventadetalle.setPrecio_unitario(precio_unitario);
-        ventadetalle.setId(Integer.parseInt(id));
-        
-            //boton agregar
-            if ("agregar".equals(request.getParameter("btn_agregar"))) {            
-            if (ventadetalle.agregar() > 0) {
-                response.sendRedirect("index.jsp");
-            } else {
-                out.println("<h1>Error al agregar...</h1>");
-                out.println("<a href = 'index.jsp'>Regresar</a>");
-            }   
-            }
-
-            // Botón Modificar
-            if ("modificar".equals(request.getParameter("btn_modificar"))) {            
-            if (ventadetalle.modificar() > 0) {
-                response.sendRedirect("index.jsp");
-            } else {
-                out.println("<h1>Error al modificar...</h1>");
-                out.println("<a href = 'index.jsp'>Regresar</a>");
-            }   
-            }
-
-            // Botón Eliminar
-            if ("Eliminar".equals(request.getParameter("btn_eliminar"))) {            
-            if (ventadetalle.eliminar() > 0) {
-                response.sendRedirect("index.jsp");
-            } else {
-                out.println("<h1>Error al eliminar...</h1>");
-                out.println("<a href = 'index.jsp'>Regresar</a>");
-            }   
-            }
-            
-            
-            
             out.println("</body>");
             out.println("</html>");
         }
@@ -125,9 +71,32 @@ public class sr_ventadetalle extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+                    throws ServletException, IOException {
+         String user = request.getParameter("txt_user");
+        String pass = request.getParameter("txt_pass");
+
+        // 2. Validar el usuario
+        empleado = usuario.validar(user, pass); // Retorna un objeto Empleado
+
+        if (empleado != null) {
+            // Crear una sesión y almacenar los datos del usuario
+            HttpSession session = request.getSession();
+            session.setAttribute("empleado", empleado);
+
+            // Verificar el rol del usuario y redirigir según corresponda
+            if ("admin".equals(empleado.getRol())) {
+                response.sendRedirect("Principal.jsp");  // Página para admins
+            } else {
+                response.sendRedirect("Registro_venta.jsp");  // Página para usuarios normales
+            }
+        } else {
+            // Enviar mensaje de error y volver a index.jsp
+            request.setAttribute("error", "Usuario o contraseña incorrectos");
+            request.getRequestDispatcher("index.jsp").forward(request, response);
+        }
     }
+
+    
 
     /**
      * Returns a short description of the servlet.

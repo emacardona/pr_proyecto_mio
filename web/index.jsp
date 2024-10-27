@@ -145,23 +145,29 @@
             </select>
             </div>
 
+            
             <!-- ID Producto -->
             <div class="form-group mb-3">
-            <label for="lbl_idproducto"><b>Id Producto</b></label>
-            <select name="drop_idproducto" id="drop_idproducto" class="form-control">
+    <label for="lbl_idproducto"><b>Producto</b></label>
+    <select name="drop_idproducto" id="drop_idproducto" class="form-control">
+        <option value="">Seleccione un producto</option>
+        <%
+            Idproducto idproducto = new Idproducto();
+            HashMap<String, String> productos = idproducto.drop_sangre2();
+            
+            if (!productos.isEmpty()) {
+                for (String id : productos.keySet()) {
+                    out.println("<option value='" + id + "'>" + productos.get(id) + "</option>");
+                }
+            } else {
+                out.println("<option value=''>No hay productos disponibles</option>");
+            }
+        %>
+    </select>
+    <a href="mantenimientoEmpleados.jsp">Ir a mantenimiento de Empleados</a>
+</div>
+             
                 
-                <%
-                    Idproducto idproducto = new Idproducto();
-                    HashMap<String, String> dropProductos = idproducto.drop_sangre2();
-                    for (String i: dropProductos.keySet()) {
-                    out.println("<option value='" + i + "' >" + dropProductos.get(i) + "</option>");
-                    }
-                %>
-                
-            </select>
-            <a href="mantenimientoEmpleados.jsp">Ir a mantenimiento de Empleados</a>
-            </div>
-
             <!-- Cantidad -->
             <div class="form-group mb-3">
               <label for="lbl_cantidad"><b>Cantidad</b></label>

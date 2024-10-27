@@ -3,14 +3,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package modelo;
-import java.util.List;              // Para utilizar List (para manejar colecciones de Ventadetalle)
-import java.sql.Connection;
-import java.sql.Savepoint;
-import java.util.ArrayList;
-import java.sql.ResultSet;
-import java.util.HashMap;
-import java.sql.SQLException;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -19,55 +14,42 @@ import javax.swing.table.DefaultTableModel;
  */
     
     public class Venta {
-    private String nofactura, serie, fechafactura, fechaingreso;
-    private Idcliente idcliente;
-    private Idempleado idempleado;
-    private int id;
-    private Conexion cn;
+    private int id_venta;
+    private int no_factura;
+    private String serie;
+    private String fecha_factura;
+    private int id_cliente;
+    private int id_empleado;
+    private String fecha_ingreso;
+    Conexion cn;
 
     public Venta(){}
 
-    public Venta(String nofactura, String serie, String fechafactura, String fechaingreso, Idcliente idcliente, Idempleado idempleado, int id) {
-        this.nofactura = nofactura;
+    public Venta(int id_venta, int no_factura, String serie, String fecha_factura, int id_cliente, int id_empleado, String fecha_ingreso) {
+        this.id_venta = id_venta;
+        this.no_factura = no_factura;
         this.serie = serie;
-        this.fechafactura = fechafactura;
-        this.fechaingreso = fechaingreso;
-        this.idcliente = idcliente;
-        this.idempleado = idempleado;
-        this.id = id;
+        this.fecha_factura = fecha_factura;
+        this.id_cliente = id_cliente;
+        this.id_empleado = id_empleado;
+        this.fecha_ingreso = fecha_ingreso;
     }
     
     
-     public int getId() {
-        return id;
+    public int getId_venta() {
+        return id_venta;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setId_venta(int id_venta) {
+        this.id_venta = id_venta;
     }
 
-    public Idcliente getIdcliente() {
-        return idcliente;
+    public int getNo_factura() {
+        return no_factura;
     }
 
-    public void setIdcliente(Idcliente idcliente) {
-        this.idcliente = idcliente;
-    }
-
-    public Idempleado getIdempleado() {
-        return idempleado;
-    }
-
-    public void setIdempleado(Idempleado idempleado) {
-        this.idempleado = idempleado;
-    }
-
-    public String getNofactura() {
-        return nofactura;
-    }
-
-    public void setNofactura(String nofactura) {
-        this.nofactura = nofactura;
+    public void setNo_factura(int no_factura) {
+        this.no_factura = no_factura;
     }
 
     public String getSerie() {
@@ -78,20 +60,87 @@ import javax.swing.table.DefaultTableModel;
         this.serie = serie;
     }
 
-    public String getFechafactura() {
-        return fechafactura;
+    public String getFecha_factura() {
+        return fecha_factura;
     }
 
-    public void setFechafactura(String fechafactura) {
-        this.fechafactura = fechafactura;
+    public void setFecha_factura(String fecha_factura) {
+        this.fecha_factura = fecha_factura;
     }
 
-    public String getFechaingreso() {
-        return fechaingreso;
+    public int getId_cliente() {
+        return id_cliente;
     }
 
-    public void setFechaingreso(String fechaingreso) {
-        this.fechaingreso = fechaingreso;
+    public void setId_cliente(int id_cliente) {
+        this.id_cliente = id_cliente;
+    }
+
+    public int getId_empleado() {
+        return id_empleado;
+    }
+
+    public void setId_empleado(int id_empleado) {
+        this.id_empleado = id_empleado;
+    }
+
+    public String getFecha_ingreso() {
+        return fecha_ingreso;
+    }
+
+    public void setFecha_ingreso(String fecha_ingreso) {
+        this.fecha_ingreso = fecha_ingreso;
+    }
+    
+    
+    public int obtenerUltimoNum() {
+        int ultimoNumero = 0;
+        try {
+            PreparedStatement parametro;
+            cn = new Conexion();
+            cn.abrir_conexion();
+
+            String query = "SELECT no_factura FROM ventas ORDER BY no_factura DESC LIMIT 1;";
+            parametro = cn.conexionDB.prepareStatement(query);
+            ResultSet rs = parametro.executeQuery();
+
+            if (rs.next()) {
+                ultimoNumero = rs.getInt("no_factura");
+            }
+
+            cn.cerrar_conexion();
+        } catch (SQLException ex) {
+            System.out.println("Error al obtener último número de orden: " + ex.getMessage());
+        }
+        return ultimoNumero;
+    }
+    
+    
+    public int agregar() {
+        int retorno = 0;
+        try {
+            PreparedStatement parametro;
+            cn = new Conexion();
+            cn.abrir_conexion();
+
+            // Consulta SQL para insertar una nueva compra
+            String query = "INSERT INTO ventas (no_factura,serie,fecha_factura,id_cliente,id_empleado,fecha_ingreso) VALUES (?, ?, ?, ?, ?, ?)";
+            parametro = cn.conexionDB.prepareStatement(query);
+
+            parametro.setInt(1, no_factura);
+            parametro.setString(2, serie);
+            parametro.setString(3, fecha_factura);
+            parametro.setInt(4, id_cliente);
+            parametro.setInt(5, id_empleado);
+            parametro.setString(6, fecha_ingreso);
+            
+            retorno = parametro.executeUpdate(); // Ejecutar la consulta
+            cn.cerrar_conexion();
+        } catch (SQLException ex) {
+            System.out.println("Algo salió mal: " + ex.getMessage());
+            retorno = 0;
+        }
+        return retorno;
     }
     
     
@@ -100,24 +149,41 @@ import javax.swing.table.DefaultTableModel;
     try {
         cn = new Conexion();
         cn.abrir_conexion();
+        
+        String query = "SELECT v.id_Venta, v.no_factura, v.serie, v.fecha_factura, v.fecha_ingreso, " +
+                       "c.id_Cliente, c.nombres, e.id_Empleado, e.nombres, vd.cantidad, vd.precio_unitario, pr.id_producto, pr.producto " +
+                       "FROM ventas AS v " +
+                       "INNER JOIN clientes AS c ON v.id_Cliente = c.id_Cliente " +
+                       "INNER JOIN empleados AS e ON v.id_Empleado = e.id_Empleado " +
+                       "INNER JOIN ventas_detalle AS vd ON v.id_Venta = vd.id_Venta " +
+                       "INNER JOIN productos AS pr ON vd.id_producto = pr.id_producto " +
+                       "ORDER BY v.id_Venta ASC;"; // Asegúrate de ordenar por no_orden_compra
+        ResultSet consulta = cn.conexionDB.createStatement().executeQuery(query);
 
-        String query = "SELECT id_Venta as id, no_factura, serie, fecha_factura, id_Cliente, id_Empleado, fecha_ingreso FROM ventas;";
-        ResultSet consulta = cn.conexionBD.createStatement().executeQuery(query);
-
-        String encabezado[] = {"Codigo de Venta", "No. Factura", "No. Serie", "Fecha de Factura", "Codigo del Cliente", "Codigo del Empleado", "Fecha de Ingreso"};
+        String encabezado[] = {"ID Venta", "Número de Factura", "Serie", "ID Cliente", "Cliente", "ID Empleado", "Empleado", 
+                               "Fecha de Factura", "Fecha de Ingreso", 
+                               "ID Producto", "Producto", "Cantidad", "Precio Unitario"};
         tabla.setColumnIdentifiers(encabezado);
-        String datos[] = new String[7];
-        while (consulta.next()) {
-            datos[0] = consulta.getString("id");
+        
+        // Datos
+         while (consulta.next()) {
+            Object[] datos = new Object[13];
+            datos[0] = consulta.getString("id_venta");
             datos[1] = consulta.getString("no_factura");
             datos[2] = consulta.getString("serie");
             datos[3] = consulta.getString("fecha_factura");
-            datos[4] = consulta.getString("id_Cliente");      
-            datos[5] = consulta.getString("id_Empleado");     
-            datos[6] = consulta.getString("fecha_ingreso");
+            datos[4] = consulta.getString("fecha_ingreso");
+            datos[5] = consulta.getString("nombres");
+            datos[6] = consulta.getString("id_cliente");
+            datos[7] = consulta.getString("nombres");
+            datos[8] = consulta.getString("id_empleado");
+            datos[9] = consulta.getString("id_producto");
+            datos[10] = consulta.getString("producto");  
+            datos[11] = consulta.getInt("cantidad");
+            datos[12] = consulta.getDouble("precio_unitario");
             tabla.addRow(datos);
         }
-
+        
         cn.cerrar_conexion();
     } catch (SQLException ex) {
         System.out.println(ex.getMessage());
@@ -125,157 +191,57 @@ import javax.swing.table.DefaultTableModel;
     return tabla;
 }
    
-   
-   public int agregarVentaConDetalle(List<Ventadetalle> detalles) {
-    int retorno = 0;
-    PreparedStatement parametroVenta = null;
-    PreparedStatement parametroObtenerId = null;
-    ResultSet rs = null;
-    try {
-        cn = new Conexion();
-        cn.abrir_conexion(); // Abre la conexión
-
-        // Iniciar transacción
-        cn.conexionBD.setAutoCommit(false); // Inicia la transacción
-
-        // Insertar en la tabla 'ventas'
-        String queryVenta = "INSERT INTO ventas(no_factura, serie, fecha_factura, id_Cliente, id_Empleado, fecha_ingreso) VALUES (?, ?, ?, ?, ?, ?);";
-        parametroVenta = cn.conexionBD.prepareStatement(queryVenta);
-        parametroVenta.setString(1, this.getNofactura());
-        parametroVenta.setString(2, this.getSerie());
-        parametroVenta.setString(3, this.getFechafactura());
-        parametroVenta.setInt(4, this.idcliente.getId_cliente());
-        parametroVenta.setInt(5, this.idempleado.getId_empleado());
-        parametroVenta.setString(6, this.getFechaingreso());
-        retorno = parametroVenta.executeUpdate();
-        System.out.println("Venta insertada: " + retorno);
-
-        // Obtener el ID de la venta recién insertada
-        String queryObtenerIdVenta = "SELECT LAST_INSERT_ID()";
-        parametroObtenerId = cn.conexionBD.prepareStatement(queryObtenerIdVenta);
-        rs = parametroObtenerId.executeQuery();
-        int idVenta = 0;
-        if (rs.next()) {
-            idVenta = rs.getInt(1);
-            System.out.println("ID de la venta insertada: " + idVenta);
-        }
-
-        // Insertar en la tabla 'ventas_detalle'
-        String queryDetalle = "INSERT INTO ventas_detalle(id_Venta, id_Producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?);";
-        PreparedStatement parametroDetalle = cn.conexionBD.prepareStatement(queryDetalle);
-
-        for (Ventadetalle detalle : detalles) {
-            parametroDetalle.setInt(1, idVenta);
-            parametroDetalle.setInt(2, detalle.getIdproducto().getId_producto());
-            parametroDetalle.setString(3, detalle.getCantidad());
-            parametroDetalle.setString(4, detalle.getPrecio_unitario());
-            retorno += parametroDetalle.executeUpdate();
-            System.out.println("Detalle insertado: " + retorno);
-        }
-
-        // Confirmar la transacción
-        cn.conexionBD.commit();
-        System.out.println("Transacción completada con éxito.");
-
-    } catch (SQLException ex) {
-        try {
-            // Si ocurre un error, se revierte la transacción
-            System.out.println("Error en la transacción, realizando rollback: " + ex.getMessage());
-            if (cn.conexionBD != null) {
-                cn.conexionBD.rollback();
-            }
-        } catch (SQLException e) {
-            System.out.println("Error al realizar rollback: " + e.getMessage());
-        }
-        retorno = 0;
-    } finally {
-        try {
-            if (rs != null) rs.close();
-            if (parametroVenta != null) parametroVenta.close();
-            if (parametroObtenerId != null) parametroObtenerId.close();
-            cn.cerrar_conexion();
-        } catch (SQLException e) {
-            System.out.println("Error al cerrar conexión: " + e.getMessage());
-        }
-    }
-
-    return retorno;
-} 
-
-
-     /* public int agregar() {
-     int retorno = 0;
-     try {
-        PreparedStatement parametro;
-        cn = new Conexion();
-        String query = "INSERT INTO ventas(no_factura, serie, fecha_factura, id_Cliente, id_Empleado, fecha_ingreso) VALUES (?, ?, ?, ?, ?, ?);";
-        cn.abrir_conexion();
-        parametro = (PreparedStatement)cn.conexionBD.prepareStatement(query);
-        parametro.setString(1, this.getNofactura());
-        parametro.setString(2, this.getSerie());
-        parametro.setString(3, this.getFechafactura());
-        parametro.setInt(4, this.idcliente.getId_cliente());
-        parametro.setInt(5, this.idempleado.getId_empleado());
-        parametro.setString(6, this.getFechaingreso());
-        
-
-        
-         retorno = parametro.executeUpdate();
-         cn.cerrar_conexion();
-        
-        } catch (SQLException ex) {
-        System.out.println(ex.getMessage());
-       retorno = 0;
-        }
-    
-        return retorno;
- } */
-
-    public int modificar() {
+   public int actualizar() {
     int retorno = 0;
     try {
         PreparedStatement parametro;
         cn = new Conexion();
-        String query = "UPDATE ventas SET no_factura=?,serie=?,fecha_factura=?,id_Cliente=?,id_Empleado=?,fecha_ingreso=? WHERE id_Venta=?;";
         cn.abrir_conexion();
-        parametro = (PreparedStatement)cn.conexionBD.prepareStatement(query);
-        parametro.setString(1, getNofactura());
-        parametro.setString(2, getSerie());
-        parametro.setString(3, getFechafactura());
-        parametro.setInt(4, this.idcliente.getId_cliente());
-        parametro.setInt(5, this.idempleado.getId_empleado());
-        parametro.setString(6, getFechaingreso());
-        parametro.setInt(7, getId());
-        
-        retorno = parametro.executeUpdate();
+
+        // Consulta SQL para actualizar una compra
+        String query = "UPDATE ventas SET serie= ?, fecha_factura = ?, id_cliente = ?, id_empleado = ?, fecha_ingreso = ? WHERE id_venta = ?;";
+        parametro = cn.conexionDB.prepareStatement(query);
+
+        // Establecer los parámetros
+        parametro.setString(1, this.serie);
+        parametro.setString(2, this.fecha_factura);
+        parametro.setInt(3, this.id_cliente);
+        parametro.setInt(4, this.id_empleado);
+        parametro.setString(5, this.fecha_ingreso);
+        parametro.setInt(6, this.id_venta); 
+
+        retorno = parametro.executeUpdate(); // Ejecutar la consulta
         cn.cerrar_conexion();
-        
-        } catch (SQLException ex) {
-        System.out.println(ex.getMessage());
+    } catch (SQLException ex) {
+        System.out.println("Algo salió mal: " + ex.getMessage());
         retorno = 0;
-        }
-    
-        return retorno;
+    }
+    return retorno;
+}
+   
+   public int eliminar() {
+    int retorno = 0;
+    try {
+        PreparedStatement parametro;
+        cn = new Conexion();
+        cn.abrir_conexion();
+        
+        // Consulta SQL para eliminar una compra
+        String query = "DELETE FROM ventas WHERE id_venta = ?;";
+        parametro = cn.conexionDB.prepareStatement(query);
+        
+        // Establecer el parámetro
+        parametro.setInt(1, this.getId_venta()); // Asegúrate de que el ID esté establecido
+        
+        retorno = parametro.executeUpdate(); // Ejecutar la consulta
+        cn.cerrar_conexion();
+    } catch (SQLException ex) {
+        System.out.println("Error al borrar: " + ex.getMessage());
+    }
+    return retorno;
 }
 
-    public int eliminar() {
-    int retorno = 0;
-    try {
-        PreparedStatement parametro;
-        cn = new Conexion();
-        String query = "DELETE FROM ventas WHERE id_Venta=?;";
-        cn.abrir_conexion();
-        parametro = (PreparedStatement)cn.conexionBD.prepareStatement(query);
-        parametro.setInt(1, getId());
-        retorno = parametro.executeUpdate();
-        cn.cerrar_conexion();
-        
-        } catch (SQLException ex) {
-        System.out.println(ex.getMessage());
-        retorno = 0;
-        }
-        return retorno;
-    }
-
     
+
+      
 }

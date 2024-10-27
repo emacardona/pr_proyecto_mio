@@ -3,10 +3,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package modelo;
-import java.sql.ResultSet;
-import java.util.HashMap;
-import java.sql.SQLException;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -14,167 +13,81 @@ import javax.swing.table.DefaultTableModel;
  * @author emanu
  */
 public class Ventadetalle {
-    private String cantidad, precio_unitario;
-    private Idventa idventa;
-    private Idproducto idproducto;
-    private int id;
-    private Conexion cn;
+    private int id_venta_detalle;
+    private int id_venta;
+    private int id_producto;
+    private int cantidad;   
+    private double precio_unitario;
+    Conexion cn;
     
     public Ventadetalle(){}
-
-    public Ventadetalle(String cantidad, String precio_unitario, Idventa idventa, Idproducto idproducto, int id) {
+    public Ventadetalle(int id_venta_detalle, int id_venta, int id_producto, int cantidad, double precio_unitario) {
+        this.id_venta_detalle = id_venta_detalle;
+        this.id_venta = id_venta;
+        this.id_producto = id_producto;
         this.cantidad = cantidad;
         this.precio_unitario = precio_unitario;
-        this.idventa = idventa;
-        this.idproducto = idproducto;
-        this.id = id;
-    }
-    
-    public Idventa getIdventa() {
-        return idventa;
     }
 
-    public void setIdventa(Idventa idventa) {
-        this.idventa = idventa;
+    public int getId_venta_detalle() {
+        return id_venta_detalle;
     }
 
-    public Idproducto getIdproducto() {
-        return idproducto;
+    public void setId_venta_detalle(int id_venta_detalle) {
+        this.id_venta_detalle = id_venta_detalle;
     }
 
-    public void setIdproducto(Idproducto idproducto) {
-        this.idproducto = idproducto;
+    public int getId_venta() {
+        return id_venta;
     }
-    
-    public String getCantidad() {
+
+    public void setId_venta(int id_venta) {
+        this.id_venta = id_venta;
+    }
+
+    public int getId_producto() {
+        return id_producto;
+    }
+
+    public void setId_producto(int id_producto) {
+        this.id_producto = id_producto;
+    }
+
+    public int getCantidad() {
         return cantidad;
     }
 
-    public void setCantidad(String cantidad) {
+    public void setCantidad(int cantidad) {
         this.cantidad = cantidad;
     }
 
-    public String getPrecio_unitario() {
+    public double getPrecio_unitario() {
         return precio_unitario;
     }
 
-    public void setPrecio_unitario(String precio_unitario) {
+    public void setPrecio_unitario(double precio_unitario) {
         this.precio_unitario = precio_unitario;
     }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
     
-    public DefaultTableModel leer() {
-    DefaultTableModel tabla = new DefaultTableModel();
-    try {
-        cn = new Conexion();
-        cn.abrir_conexion();
-
-        String query = "SELECT id_Venta_detalle as id, id_Venta, id_Producto, cantidad, precio_unitario FROM ventas_detalle;";
-        ResultSet consulta = cn.conexionBD.createStatement().executeQuery(query);
-
-        String encabezado[] = {"Codigo de Detalle de Venta", "Codigo de Venta", "Codigo de Producto", "cantidad", "precio_unitario"};
-        tabla.setColumnIdentifiers(encabezado);
-        String datos[] = new String[5];
-        while (consulta.next()) {
-            datos[0] = consulta.getString("id");
-            datos[1] = consulta.getString("id_venta");
-            datos[2] = consulta.getString("id_producto");
-            datos[3] = consulta.getString("cantidad");
-            datos[4] = consulta.getString("precio_unitario");
-            tabla.addRow(datos);
-        }
-
-        cn.cerrar_conexion();
-    } catch (SQLException ex) {
-        System.out.println(ex.getMessage());
-    }
-    return tabla;
-}
-
-   public int agregar() {
-    int retorno = 0;
-    try {
-        PreparedStatement parametro;
-        cn = new Conexion();
-        String query = "INSERT INTO ventas_detalle(id_venta, id_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?);";
-        cn.abrir_conexion();
-        parametro = (PreparedStatement)cn.conexionBD.prepareStatement(query);
-        parametro.setInt(1, this.idventa.getId_venta());
-        parametro.setInt(2, this.idproducto.getId_producto());
-        parametro.setString(3, this.getCantidad());
-        parametro.setString(4, this.getPrecio_unitario());
-
-        retorno = parametro.executeUpdate();
-        cn.cerrar_conexion();
-        
+    
+    public int agregar() {
+        int retorno = 0;
+        try {
+            
+            PreparedStatement parametro;
+            String query = "INSERT INTO ventas_detalle (id_Venta, id_Producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)";
+            parametro = cn.conexionDB.prepareStatement(query);
+            parametro.setInt(1, this.getId_venta());
+            parametro.setInt(2, this.getId_producto());
+            parametro.setInt(3, this.getCantidad());
+            parametro.setDouble(4, this.getPrecio_unitario());
+            retorno = parametro.executeUpdate(); 
+            cn.cerrar_conexion();
+            
         } catch (SQLException ex) {
-        System.out.println(ex.getMessage());
-        retorno = 0;
-        }
-    
-        return retorno;
-}
-    
-   
-       
-   
-   public int modificar() {
-    int retorno = 0;
-    try {
-        PreparedStatement parametro;
-        cn = new Conexion();
-        String query = "UPDATE ventas_detalle SET id_Venta=?,id_Producto=?,cantidad=?,precio_unitario=? WHERE id_Venta_detalle=?;";
-        cn.abrir_conexion();
-        parametro = (PreparedStatement)cn.conexionBD.prepareStatement(query);
-        parametro.setInt(1, this.idventa.getId_venta());
-        parametro.setInt(2, this.idproducto.getId_producto());
-        parametro.setString(3, this.getCantidad());
-        parametro.setString(4, this.getPrecio_unitario());
-        parametro.setInt(7, getId());
-        
-        retorno = parametro.executeUpdate();
-        cn.cerrar_conexion();
-        
-        } catch (SQLException ex) {
-        System.out.println(ex.getMessage());
-        retorno = 0;
-        }
-    
-        return retorno;
-}
-   
-   
-   public int eliminar() {
-    int retorno = 0;
-    try {
-        PreparedStatement parametro;
-        cn = new Conexion();
-        String query = "DELETE FROM ventas_detalle WHERE id_Venta_detalle=?;";
-        cn.abrir_conexion();
-        parametro = (PreparedStatement)cn.conexionBD.prepareStatement(query);
-        parametro.setInt(1, getId());
-        retorno = parametro.executeUpdate();
-        cn.cerrar_conexion();
-        
-        } catch (SQLException ex) {
-        System.out.println(ex.getMessage());
-        retorno = 0;
+            System.out.println("Algo salió mal: " + ex.getMessage());
+            retorno = 0;
         }
         return retorno;
-    }
-
-    
-
-    
-
-    
-
-    
+    }    
 }
