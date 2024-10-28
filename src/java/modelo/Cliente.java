@@ -20,6 +20,7 @@ public class Cliente extends Persona {
     
     public void Cliente(){}
 
+    public Cliente(){}
     public Cliente(int id, String nombres, String apellidos, String nit, boolean genero, String telefono, String correo_elec, String fecha_ingreso) {
         super(nombres, apellidos, telefono, genero, fecha_ingreso);
         this.id = id;

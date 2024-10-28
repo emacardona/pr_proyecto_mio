@@ -18,6 +18,7 @@ public class Empleado extends Persona {
     private int id, id_puesto;
     private String direccion, dpi, fecha_nacimiento, fecha_inicio_labores,usuario,rol;
     private Conexion cn;
+    
     public Empleado() {}
     public Empleado(int id, int id_puesto, String direccion, String dpi, String fecha_nacimiento, String fecha_inicio_labores, String usuario, String rol, String nombres, String apellidos, String telefono, boolean genero, String fecha_ingreso) {
         super(nombres, apellidos, telefono, genero, fecha_ingreso);
